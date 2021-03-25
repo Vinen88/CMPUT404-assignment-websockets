@@ -64,9 +64,9 @@ clients = list()
 
 def set_listener( entity, data ):
     ''' do something with the update ! '''
+    world = dict()
+    world[str(entity)] = data
     for client in clients:
-        world = dict()
-        world[str(entity)] = data
         client.put(json.dumps(world)) 
 
 
@@ -103,16 +103,17 @@ def hello():
 #https://github.com/abramhindle/WebSocketsExamples/blob/master/chat.py
 def read_ws(ws,client):
     '''A greenlet function that reads from the websocket and updates the world'''
+    print("Entered Read_WS")
     try:
         while True:
             msg = ws.receive()
             print("WS RECV: %s" % msg)
             if (msg is not None):
                 packet = json.loads(msg)
-                #for entity, data in packet.items():
-                #    myWorld.set(entity, data)
-                ent_id = list(packet.keys())[0]
-                myWorld.set(ent_id, packet[ent_id])
+                for entity, data in packet.items():
+                    myWorld.set(entity, data)
+                #ent_id = list(packet.keys())[0]
+                #myWorld.set(ent_id, packet[ent_id])
                 #send_all_json(packet)
             else:
                 break
@@ -126,6 +127,7 @@ def read_ws(ws,client):
 def subscribe_socket(ws):
     '''Fufill the websocket URL of /subscribe, every update notify the
        websocket and read updates from the websocket '''
+    print("ENTERED_FIRST")
     client = Client()
     clients.append(client)
     g = gevent.spawn( read_ws, ws, client )

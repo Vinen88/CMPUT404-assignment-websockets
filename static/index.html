@@ -125,7 +125,7 @@ function addEntity(entity, data) {
     world[entity] = data;
     drawNextFrame(); // (but should we?)
     //XXX: Send a XHTML Request that updates the entity you just modified!
-    changes = {}
+    var changes = {};
     changes[entity] = data;
     socket.send(JSON.stringify(changes));
     drawNextFrame();
@@ -232,18 +232,29 @@ mouse = (function() {
     return self;
 })();
 
+
+// AUTHOR: Anatoliy -> https://stackoverflow.com/users/161832/anatoliy
+// also taken from my Assignment 4
+function random_colour(){
+    var letters = '0123456789ABCDEF';
+    var color = '#';
+    for (var i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}
 // Add the application specific mouse listeners!
 //XXX: TODO Make these prettier!
 mouse.mousedowners.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'blue'});
+    addEntityWithoutName({'x':x,'y':y,'colour':random_colour()});
 });
 
 mouse.mouseuppers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'red'});
+    addEntityWithoutName({'x':x,'y':y,'colour':random_colour()});
 });
 
 mouse.mousedraggers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'green',
+    addEntityWithoutName({'x':x,'y':y,'colour':random_colour(),
                           'radius':10});
 });
 
@@ -255,7 +266,9 @@ function update() {
 
 function wsSetup() {
     var url = "ws://"+host+"/subscribe";   
+    console.log(url)
     socket = new WebSocket(url);
+    console.log("socket created")
     socket.onopen = function() {
         console.log("Socket Open!!!!");
         //XXX: TODO What are you going to do here? nothing? chat is nothing... lets try nothing
@@ -266,15 +279,16 @@ function wsSetup() {
     };
     socket.onmessage = function(msg) {  
         try {
+            console.log("Pepper console")
             debug("WebSocket Recv:" + msg.data);
 
             //XXX: TODO What are you going to do here? maybe? dont know if this works
             var message = JSON.parse(msg.data);
-            for (i of Object.keys(message)) {
-                world[i] = message[i];
-                drawNextFrame();
+            //for (i of Object.keys(message)) {
+            for (var key in updates) {
+                world[key] = message[key];
             }
-                       
+            drawNextFrame();    
         } catch (e) {
             alert("socket on message: " + e);
         }
