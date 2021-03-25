@@ -253,7 +253,7 @@ function wsSetup() {
     var url = "ws://"+host+"/subscribe";   
     socket = new WebSocket(url);
     socket.onopen = function() {
-        //XXX: TODO What are you going to do here?
+        //XXX: TODO What are you going to do here? get world?
     };
     socket.onerror = function(msg) {
         debug("WebSocket Error:" + msg.data);
@@ -261,7 +261,14 @@ function wsSetup() {
     socket.onmessage = function(msg) {  
         try {
             debug("WebSocket Recv:" + msg.data);
-            //XXX: TODO What are you going to do here?            
+
+            //XXX: TODO What are you going to do here? maybe?
+            var message = JSON.parse(msg.data);
+            for (var i in message) {
+                var item = message[i];
+                world[item.key] = item.val;
+            }
+                       
         } catch (e) {
             alert("socket on message: " + e);
         }
