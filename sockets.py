@@ -60,15 +60,21 @@ class World:
         return self.space
 
 myWorld = World()        
+clients = list()
 
 def set_listener( entity, data ):
     ''' do something with the update ! '''
+    for client in clients:
+        world = dict()
+        world[str(entity)] = data
+        client.put(json.dumps(world)) 
+
 
 myWorld.add_set_listener( set_listener )
 
 #Abram Hindle
 #https://github.com/abramhindle/WebSocketsExamples/blob/547b31b1a6873dd67dc5a4a44cbed0a2003d7811/chat.py
-clients = list()
+
 
 def send_all(msg):
     for client in clients:
@@ -100,10 +106,14 @@ def read_ws(ws,client):
     try:
         while True:
             msg = ws.receive()
-            print("WS RECV: %s") % msg
+            print("WS RECV: %s" % msg)
             if (msg is not None):
                 packet = json.loads(msg)
-                send_all_json(packet)
+                #for entity, data in packet.items():
+                #    myWorld.set(entity, data)
+                ent_id = list(packet.keys())[0]
+                myWorld.set(ent_id, packet[ent_id])
+                #send_all_json(packet)
             else:
                 break
     except:
@@ -116,17 +126,18 @@ def read_ws(ws,client):
 def subscribe_socket(ws):
     '''Fufill the websocket URL of /subscribe, every update notify the
        websocket and read updates from the websocket '''
-    # XXX: TODO IMPLEMENT ME
     client = Client()
     clients.append(client)
-    g = gevent.spawn( read_ws, ws, client )    
+    g = gevent.spawn( read_ws, ws, client )
+    print("ENTERED")
+    ws.send(json.dumps(myWorld.world()))  #need the current world!
     try:
         while True:
             # block here
             msg = client.get()
             ws.send(msg)
     except Exception as e:# WebSocketError as e:
-        print("WS Error %s") %e
+        print("WS Error %s" % e)
     finally:
         clients.remove(client)
         gevent.kill(g)
@@ -152,8 +163,8 @@ def update(entity):
     for key, value in data.items():
         myWorld.update(entity, key, value)
     ret_value = myWorld.get(entity)
-    send_all_json(ret_value) #maybe? will see if this works can always be lazy again and send the whole world
-    return json.dumps(ret_value), 200
+    #send_all_json(ret_value) #maybe? will see if this works can always be lazy again and send the whole world
+    return json.dumps(ret_value), 200 #shouldnt even have to use this?
 
 @app.route("/world", methods=['POST','GET'])    
 def world():
@@ -164,7 +175,7 @@ def world():
         for key, value in data.items():
             for k, v in value.items():
                 myWorld.update(key, k, v)
-    send_all_json(myWorld.world)
+    #send_all_json(myWorld.world)
     return json.dumps(myWorld.world()), 200
 
 @app.route("/entity/<entity>")    
@@ -177,8 +188,8 @@ def get_entity(entity):
 def clear():
     '''Clear the world out!'''
     myWorld.clear()
-    send_all_json(myWorld.world()) #its cleared gotta update clients
-    return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
+    #send_all_json(myWorld.world()) #its cleared gotta update clients
+    return json.dumps(myWorld.world()), 200
 
 
 

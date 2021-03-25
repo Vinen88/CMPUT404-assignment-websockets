@@ -40,7 +40,7 @@ function debug(str) {
     var debugDiv = document.getElementById('debug');
     debugDiv.innerHTML = "" + str;
 }
-debug("Test");
+//debug("Test");
 
 world = {};
 
@@ -125,6 +125,10 @@ function addEntity(entity, data) {
     world[entity] = data;
     drawNextFrame(); // (but should we?)
     //XXX: Send a XHTML Request that updates the entity you just modified!
+    changes = {}
+    changes[entity] = data;
+    socket.send(JSON.stringify(changes));
+    drawNextFrame();
 }
 var counter = 0;
 function addEntityWithoutName(data) {
@@ -253,20 +257,22 @@ function wsSetup() {
     var url = "ws://"+host+"/subscribe";   
     socket = new WebSocket(url);
     socket.onopen = function() {
-        //XXX: TODO What are you going to do here? get world?
+        console.log("Socket Open!!!!");
+        //XXX: TODO What are you going to do here? nothing? chat is nothing... lets try nothing
     };
     socket.onerror = function(msg) {
-        debug("WebSocket Error:" + msg.data);
+        console.log(msg);
+        debug("WebSocket Error: " + msg.data);
     };
     socket.onmessage = function(msg) {  
         try {
             debug("WebSocket Recv:" + msg.data);
 
-            //XXX: TODO What are you going to do here? maybe?
+            //XXX: TODO What are you going to do here? maybe? dont know if this works
             var message = JSON.parse(msg.data);
-            for (var i in message) {
-                var item = message[i];
-                world[item.key] = item.val;
+            for (i of Object.keys(message)) {
+                world[i] = message[i];
+                drawNextFrame();
             }
                        
         } catch (e) {
