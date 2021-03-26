@@ -285,7 +285,7 @@ function wsSetup() {
             //XXX: TODO What are you going to do here? maybe? dont know if this works
             var message = JSON.parse(msg.data);
             //for (i of Object.keys(message)) {
-            for (var key in updates) {
+            for (var key in message) {
                 world[key] = message[key];
             }
             drawNextFrame();    
