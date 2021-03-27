@@ -103,7 +103,7 @@ def hello():
 #https://github.com/abramhindle/WebSocketsExamples/blob/master/chat.py
 def read_ws(ws,client):
     '''A greenlet function that reads from the websocket and updates the world'''
-    print("Entered Read_WS")
+    #print("Entered Read_WS")
     try:
         while True:
             msg = ws.receive()
@@ -127,11 +127,11 @@ def read_ws(ws,client):
 def subscribe_socket(ws):
     '''Fufill the websocket URL of /subscribe, every update notify the
        websocket and read updates from the websocket '''
-    print("ENTERED_FIRST")
+    #print("ENTERED_FIRST")
     client = Client()
     clients.append(client)
     g = gevent.spawn( read_ws, ws, client )
-    print("ENTERED")
+    #print("ENTERED")
     ws.send(json.dumps(myWorld.world()))  #need the current world!
     try:
         while True:
